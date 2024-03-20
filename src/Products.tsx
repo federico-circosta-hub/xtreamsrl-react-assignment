@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   Box,
   Card,
@@ -35,18 +35,36 @@ export const Products = ({
 }: {
   onCartChange: (cart: Cart) => void;
 }) => {
-  const limit = 21;
+  const LIMIT_ITEMS_PER_PAGE = 20;
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
-  const { data } = useGetProductsQuery({ limit, page });
+  const throttledScroll = useRef<NodeJS.Timeout | null>(null);
+
+  const { data, isLoading, isFetching } = useGetProductsQuery({
+    limit: LIMIT_ITEMS_PER_PAGE,
+    page,
+  });
 
   useEffect(() => {
-    if (data) setProducts(data.products);
-    /*     fetch("/products?limit=21&page=2")
-      .then((response) => response.json())
-      .then((data) => setProducts(data.products)); */
+    if (data) {
+      setProducts((prevState) => [...prevState, ...data.products]);
+      setHasMore(data.hasMore);
+    }
   }, [data]);
+
+  const handleScroll = useCallback((e: any) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if ((scrollTop + clientHeight) / scrollHeight >= 0.8) {
+      if (!throttledScroll.current) {
+        throttledScroll.current = setTimeout(() => {
+          setPage((prev) => prev + 1);
+          throttledScroll.current = null;
+        }, 750);
+      }
+    }
+  }, []);
 
   function addToCart(productId: number, quantity: number) {
     setProducts(
@@ -87,7 +105,10 @@ export const Products = ({
   }
 
   return (
-    <Box overflow="scroll" height="100%">
+    <div
+      style={{ width: "100%", height: "100vh", overflow: "scroll" }}
+      onScroll={hasMore ? handleScroll : undefined}
+    >
       <Grid container spacing={2} p={2}>
         {products.map((product) => (
           <Grid item xs={4}>
@@ -155,6 +176,6 @@ export const Products = ({
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </div>
   );
 };
