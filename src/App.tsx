@@ -1,6 +1,6 @@
 import { Cart, Products } from "./Products.tsx";
 import CssBaseline from "@mui/material/CssBaseline";
-import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import SearchAppBar from "./SearchAppBar.tsx";
 import { Categories } from "./Categories.tsx";
 import { useState } from "react";
@@ -13,19 +13,19 @@ function App() {
   }
 
   return (
-    <Box height="100vh" display="flex" flexDirection="column">
+    <Stack height="100vh" display="flex" flexDirection="column">
       <CssBaseline />
       <SearchAppBar
         quantity={cart?.totalItems || 0}
         price={cart?.totalPrice || 0}
       />
-      <Box flex={1} display="flex" flexDirection="row">
+      <Stack flex={1} display="flex" flexDirection="row">
         <Categories />
-        <Box flex={1}>
+        <Stack flex={1}>
           <Products onCartChange={onCartChange} />
-        </Box>
-      </Box>
-    </Box>
+        </Stack>
+      </Stack>
+    </Stack>
   );
 }
 

@@ -13,6 +13,7 @@ import {
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { HeavyComponent } from "./HeavyComponent.tsx";
+import { useGetProductsQuery } from "./api/apiSlice.ts";
 
 export type Product = {
   id: number;
@@ -34,13 +35,18 @@ export const Products = ({
 }: {
   onCartChange: (cart: Cart) => void;
 }) => {
+  const limit = 21;
   const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState<number>(0);
+
+  const { data } = useGetProductsQuery({ limit, page });
 
   useEffect(() => {
-    fetch("/products?limit=21&page=2")
+    if (data) setProducts(data.products);
+    /*     fetch("/products?limit=21&page=2")
       .then((response) => response.json())
-      .then((data) => setProducts(data.products));
-  }, []);
+      .then((data) => setProducts(data.products)); */
+  }, [data]);
 
   function addToCart(productId: number, quantity: number) {
     setProducts(
