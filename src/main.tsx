@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import App from "./App";
-import { store } from "./Store/store.ts";
+import { store } from "./app/store.ts";
 import { enableMockServiceWorker } from "./mocks/browser.ts";
 
 enableMockServiceWorker().then(() => {
@@ -13,7 +13,6 @@ enableMockServiceWorker().then(() => {
       <Provider store={store}>
         <App />
       </Provider>
-      ,
     </React.StrictMode>
   );
 });

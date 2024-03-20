@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Product } from "../Products";
+import { searchBarState } from "../features/searchBar/searchBarSlice";
 
 interface productsResponse {
   hasMore: boolean;
@@ -13,9 +14,10 @@ export const appApi = createApi({
   endpoints: (builder) => ({
     getProducts: builder.query<
       productsResponse,
-      { limit: number; page: number }
+      { limit: number; page: number; query: string }
     >({
-      query: ({ limit, page }) => `products?limit=${limit}&page=${page}`,
+      query: ({ limit, page, query }) =>
+        `products?limit=${limit}&page=${page}&q=${query}`,
     }),
   }),
 });

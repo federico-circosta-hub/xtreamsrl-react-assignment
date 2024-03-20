@@ -14,6 +14,8 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { HeavyComponent } from "./HeavyComponent.tsx";
 import { useGetProductsQuery } from "./api/apiSlice.ts";
+import { useSelector } from "react-redux";
+import type { RootState } from "./app/store.ts";
 
 export type Product = {
   id: number;
@@ -41,11 +43,17 @@ export const Products = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
 
   const throttledScroll = useRef<NodeJS.Timeout | null>(null);
-
+  const query = useSelector((state: RootState) => state.searchBar.value);
   const { data, isLoading, isFetching } = useGetProductsQuery({
     limit: LIMIT_ITEMS_PER_PAGE,
     page,
+    query: query,
   });
+
+  useEffect(() => {
+    setProducts([]);
+    setPage(0);
+  }, [query]);
 
   useEffect(() => {
     if (data) {
