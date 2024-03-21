@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Product } from "../Products";
+import { Product } from "../app/types";
 import { searchBarState } from "../features/searchBar/searchBarSlice";
 
 interface productsResponse {
@@ -19,7 +19,14 @@ export const appApi = createApi({
       query: ({ limit, page, query }) =>
         `products?limit=${limit}&page=${page}&q=${query}`,
     }),
+    cart: builder.mutation({
+      query: ({ cart }) => ({
+        url: `cart`,
+        method: "POST",
+        body: cart,
+      }),
+    }),
   }),
 });
 
-export const { useGetProductsQuery } = appApi;
+export const { useGetProductsQuery, useCartMutation } = appApi;

@@ -9,7 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { Badge } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useDispatch } from "react-redux";
-import { changeValue } from "./features/searchBar/searchBarSlice";
+import { changeValue } from "../features/searchBar/searchBarSlice";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",

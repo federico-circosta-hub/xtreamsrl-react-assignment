@@ -9,29 +9,16 @@ import {
   IconButton,
   Typography,
   CircularProgress,
+  Snackbar,
 } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
-import { HeavyComponent } from "./HeavyComponent.tsx";
-import { useGetProductsQuery } from "./api/apiSlice.ts";
+import { HeavyComponent } from "../components/HeavyComponent.tsx";
+import { useCartMutation, useGetProductsQuery } from "../api/apiSlice.ts";
 import { useSelector } from "react-redux";
-import type { RootState } from "./app/store.ts";
+import type { RootState } from "../app/store.ts";
+import { Cart, Product } from "../app/types.ts";
 
-export type Product = {
-  id: number;
-  name: string;
-  imageUrl: string;
-  price: number;
-  category: string;
-  itemInCart: number;
-  loading: boolean;
-};
-
-export type Cart = {
-  items: Product[];
-  totalPrice: number;
-  totalItems: number;
-};
 export const Products = ({
   onCartChange,
 }: {
@@ -41,7 +28,12 @@ export const Products = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
-
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [itemToUpdate, setItemToUpdate] = useState<{
+    id: number;
+    quantity: number;
+  }>();
+  const timeoutRef = useRef<NodeJS.Timeout>();
   const throttledScroll = useRef<NodeJS.Timeout | null>(null);
   const query = useSelector((state: RootState) => state.searchBar.value);
   const { data, isLoading, isFetching } = useGetProductsQuery({
@@ -49,6 +41,7 @@ export const Products = ({
     page,
     query: query,
   });
+  const [mutateCart, { isLoading: isMutatingCart }] = useCartMutation();
 
   useEffect(() => {
     setProducts([]);
@@ -74,42 +67,34 @@ export const Products = ({
     }
   }, []);
 
-  function addToCart(productId: number, quantity: number) {
+  const handleProductQuantity = (id: any, quantity: number) => {
     setProducts(
-      products.map((product) => {
-        if (product.id === productId) {
-          return {
-            ...product,
-            loading: true,
-          };
-        }
-        return product;
-      })
+      products.map((product) =>
+        product.id === id
+          ? { ...product, itemInCart: (product.itemInCart || 0) + 1 }
+          : product
+      )
     );
-    fetch("/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      addToCart(id, quantity);
+    }, 750);
+  };
+
+  async function addToCart(productId: number, quantity: number) {
+    await mutateCart({
+      cart: {
+        productId,
+        quantity,
       },
-      body: JSON.stringify({ productId, quantity }),
-    }).then(async (response) => {
-      if (response.ok) {
-        const cart = await response.json();
-        setProducts(
-          products.map((product) => {
-            if (product.id === productId) {
-              return {
-                ...product,
-                itemInCart: (product.itemInCart || 0) + quantity,
-                loading: false,
-              };
-            }
-            return product;
-          })
-        );
-        onCartChange(cart);
-      }
-    });
+    })
+      .then((response) => {
+        if (response) {
+          setOpenSnackbar(true);
+        }
+      })
+      .catch((err) => console.error(err));
+    setItemToUpdate(undefined);
   }
 
   return (
@@ -155,10 +140,12 @@ export const Products = ({
                     bottom={0}
                     textAlign="center"
                   >
-                    {product.loading && <CircularProgress size={20} />}
+                    {isMutatingCart && product.id === itemToUpdate?.id && (
+                      <CircularProgress size={20} />
+                    )}
                   </Box>
                   <IconButton
-                    disabled={product.loading}
+                    disabled={isMutatingCart}
                     aria-label="delete"
                     size="small"
                     onClick={() => addToCart(product.id, -1)}
@@ -171,10 +158,17 @@ export const Products = ({
                   </Typography>
 
                   <IconButton
-                    disabled={product.loading}
+                    disabled={isMutatingCart}
                     aria-label="add"
                     size="small"
-                    onClick={() => addToCart(product.id, 1)}
+                    onClick={() => {
+                      const newQuantity = (itemToUpdate?.quantity || 0) + 1;
+                      setItemToUpdate({
+                        id: product.id,
+                        quantity: newQuantity,
+                      });
+                      handleProductQuantity(product.id, newQuantity);
+                    }}
                   >
                     <AddIcon fontSize="small" />
                   </IconButton>
@@ -184,6 +178,12 @@ export const Products = ({
           </Grid>
         ))}
       </Grid>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={1000}
+        message="cart updated!"
+        onClose={() => setOpenSnackbar(false)}
+      />
     </div>
   );
 };

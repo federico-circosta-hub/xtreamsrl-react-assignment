@@ -3,7 +3,7 @@ import "./mocks/browser.ts";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
-import App from "./App";
+import App from "./app/App.tsx";
 import { store } from "./app/store.ts";
 import { enableMockServiceWorker } from "./mocks/browser.ts";
 

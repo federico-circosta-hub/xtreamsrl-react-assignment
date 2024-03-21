@@ -1,8 +1,9 @@
-import { Cart, Products } from "./Products.tsx";
+import { Cart } from "./types.ts";
+import { Products } from "../pages/Products.tsx";
 import CssBaseline from "@mui/material/CssBaseline";
 import Stack from "@mui/material/Stack";
-import SearchAppBar from "./SearchAppBar.tsx";
-import { Categories } from "./Categories.tsx";
+import SearchAppBar from "../components/SearchAppBar.tsx";
+import { Categories } from "../components/Categories.tsx";
 import { useState } from "react";
 
 function App() {
