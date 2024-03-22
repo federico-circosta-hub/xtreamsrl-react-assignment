@@ -7,9 +7,18 @@ export type Product = {
   itemInCart: number;
   loading: boolean;
 };
-
-export type Cart = {
-  items: Product[];
-  totalPrice: number;
+export type CartItem = {
+  product: {
+    id: number;
+    name: string;
+    imageUrl: string;
+    price: number;
+    category: string;
+  };
+  quantity: number;
+};
+export type CartResponse = {
+  items: CartItem[];
   totalItems: number;
+  totalPrice: number;
 };

@@ -8,8 +8,9 @@ import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import { Badge } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { changeValue } from "../features/searchBar/searchBarSlice";
+import { RootState } from "../app/store";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -54,14 +55,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function SearchAppBar({
-  quantity,
-  price,
-}: {
-  quantity: number;
-  price: number;
-}) {
+export default function SearchAppBar() {
   const [searchInput, setSearchInput] = useState("");
+  const { totalItems, totalPrice } = useSelector(
+    (state: RootState) => state.cart
+  );
+
   const dispatch = useDispatch();
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,10 +98,10 @@ export default function SearchAppBar({
               Total:
             </Typography>
             <Typography variant="h6" noWrap component="div">
-              $ {(price || 0).toFixed(2)}
+              $ {(totalPrice || 0).toFixed(2)}
             </Typography>
           </Box>
-          <Badge badgeContent={quantity || 0} color="secondary">
+          <Badge badgeContent={totalItems || 0} color="secondary">
             <ShoppingCartIcon />
           </Badge>
         </Toolbar>

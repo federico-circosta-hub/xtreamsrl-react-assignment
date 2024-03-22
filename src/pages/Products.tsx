@@ -10,20 +10,23 @@ import {
   Typography,
   CircularProgress,
   Snackbar,
+  Alert,
 } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { HeavyComponent } from "../components/HeavyComponent.tsx";
 import { useCartMutation, useGetProductsQuery } from "../api/apiSlice.ts";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../app/store.ts";
-import { Cart, Product } from "../app/types.ts";
+import { Product } from "../app/types.ts";
+import { changeCart } from "../features/cart/cartSlice.ts";
+import { checkCartFirst } from "../utils/functions.ts";
 
-export const Products = ({
+export const Products = (/* {
   onCartChange,
 }: {
   onCartChange: (cart: Cart) => void;
-}) => {
+} */) => {
   const LIMIT_ITEMS_PER_PAGE = 20;
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState<number>(0);
@@ -36,7 +39,9 @@ export const Products = ({
   const timeoutRef = useRef<NodeJS.Timeout>();
   const throttledScroll = useRef<NodeJS.Timeout | null>(null);
   const query = useSelector((state: RootState) => state.searchBar.value);
-  const { data, isLoading, isFetching } = useGetProductsQuery({
+  const cart = useSelector((state: RootState) => state.cart);
+  const dispatch = useDispatch();
+  const { data } = useGetProductsQuery({
     limit: LIMIT_ITEMS_PER_PAGE,
     page,
     query: query,
@@ -50,7 +55,10 @@ export const Products = ({
 
   useEffect(() => {
     if (data) {
-      setProducts((prevState) => [...prevState, ...data.products]);
+      setProducts((prevState) => [
+        ...prevState,
+        ...checkCartFirst(data.products, cart),
+      ]);
       setHasMore(data.hasMore);
     }
   }, [data]);
@@ -67,11 +75,20 @@ export const Products = ({
     }
   }, []);
 
-  const handleProductQuantity = (id: any, quantity: number) => {
+  const handleProductQuantity = (
+    id: any,
+    quantity: number,
+    increment = true
+  ) => {
     setProducts(
       products.map((product) =>
         product.id === id
-          ? { ...product, itemInCart: (product.itemInCart || 0) + 1 }
+          ? {
+              ...product,
+              itemInCart: increment
+                ? (product.itemInCart || 0) + 1
+                : (product.itemInCart || 0) - 1,
+            }
           : product
       )
     );
@@ -88,10 +105,9 @@ export const Products = ({
         quantity,
       },
     })
-      .then((response) => {
-        if (response) {
-          setOpenSnackbar(true);
-        }
+      .then((response: any) => {
+        dispatch(changeCart(response.data));
+        setOpenSnackbar(true);
       })
       .catch((err) => console.error(err));
     setItemToUpdate(undefined);
@@ -103,7 +119,7 @@ export const Products = ({
       onScroll={hasMore ? handleScroll : undefined}
     >
       <Grid container spacing={2} p={2}>
-        {products.map((product) => (
+        {products.map((product: Product) => (
           <Grid item xs={4}>
             {/* Do not remove this */}
             <HeavyComponent />
@@ -145,10 +161,17 @@ export const Products = ({
                     )}
                   </Box>
                   <IconButton
-                    disabled={isMutatingCart}
+                    disabled={isMutatingCart || !product.itemInCart}
                     aria-label="delete"
                     size="small"
-                    onClick={() => addToCart(product.id, -1)}
+                    onClick={() => {
+                      const newQuantity = (itemToUpdate?.quantity || 0) - 1;
+                      setItemToUpdate({
+                        id: product.id,
+                        quantity: newQuantity,
+                      });
+                      handleProductQuantity(product.id, newQuantity, false);
+                    }}
                   >
                     <RemoveIcon fontSize="small" />
                   </IconButton>
@@ -181,9 +204,12 @@ export const Products = ({
       <Snackbar
         open={openSnackbar}
         autoHideDuration={1000}
-        message="cart updated!"
         onClose={() => setOpenSnackbar(false)}
-      />
+      >
+        <Alert severity="success" variant="filled" sx={{ width: "100%" }}>
+          Cart updated!
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

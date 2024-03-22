@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Product } from "../app/types";
-import { searchBarState } from "../features/searchBar/searchBarSlice";
 
 interface productsResponse {
   hasMore: boolean;
