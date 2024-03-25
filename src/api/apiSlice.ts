@@ -13,10 +13,10 @@ export const appApi = createApi({
   endpoints: (builder) => ({
     getProducts: builder.query<
       productsResponse,
-      { limit: number; page: number; query: string }
+      { limit: number; page: number; query: string; category: string }
     >({
-      query: ({ limit, page, query }) =>
-        `products?limit=${limit}&page=${page}&q=${query}`,
+      query: ({ limit, page, query, category }) =>
+        `products?limit=${limit}&page=${page}&q=${query}&category=${category}`,
     }),
     cart: builder.mutation({
       query: ({ cart }) => ({

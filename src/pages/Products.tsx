@@ -22,11 +22,7 @@ import { Product } from "../app/types.ts";
 import { changeCart } from "../features/cart/cartSlice.ts";
 import { checkCartFirst } from "../utils/functions.ts";
 
-export const Products = (/* {
-  onCartChange,
-}: {
-  onCartChange: (cart: Cart) => void;
-} */) => {
+export const Products = () => {
   const LIMIT_ITEMS_PER_PAGE = 20;
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState<number>(0);
@@ -40,18 +36,20 @@ export const Products = (/* {
   const throttledScroll = useRef<NodeJS.Timeout | null>(null);
   const query = useSelector((state: RootState) => state.searchBar.value);
   const cart = useSelector((state: RootState) => state.cart);
+  const categoryParam = useSelector((state: RootState) => state.category.value);
   const dispatch = useDispatch();
   const { data } = useGetProductsQuery({
     limit: LIMIT_ITEMS_PER_PAGE,
     page,
-    query: query,
+    query,
+    category: categoryParam,
   });
   const [mutateCart, { isLoading: isMutatingCart }] = useCartMutation();
 
   useEffect(() => {
     setProducts([]);
     setPage(0);
-  }, [query]);
+  }, [query, categoryParam]);
 
   useEffect(() => {
     if (data) {
